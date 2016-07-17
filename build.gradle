@@ -28,7 +28,7 @@ def loadMinecraftConfiguration() {
     project.ext['minecraftEnv'] = hasProperty('env') ? env : 'development'
     println "Minecraft Environment is set to ${project.minecraftEnv}"
 
-    project.ext.coreVersion = '1.0-SNAPSHOT'
+    project.ext.coreVersion = '2.0-SNAPSHOT'
     println "Minecraft MP-Core Version is set to ${project.coreVersion}"
 }
 
@@ -37,8 +37,8 @@ import org.apache.tools.ant.filters.ReplaceTokens
 apply plugin: 'java'
 apply plugin:'application'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -48,7 +48,7 @@ repositories {
     }
 }
 
-version = "0.18.1" + "-" + (System.getenv("BUILD_NUMBER") ?: "SNAPSHOT")
+version = "0.18.42" + "-" + (System.getenv("BUILD_NUMBER") ?: "SNAPSHOT")
 group = "net.minepass"
 archivesBaseName = "MinePass-MinecraftWrapper"
 mainClassName = "net.minepass.gs.mc.wrapper.MP_MinecraftWrapper"
@@ -73,7 +73,7 @@ dependencies {
             transitive = true
         }
     } else if (project.minecraftEnv == 'development') {
-        minepass_core group: 'net.minepass', name: 'minepass-gameserver', version: '1.0-SNAPSHOT', changing: true
+        minepass_core group: 'net.minepass', name: 'minepass-gameserver', version: "${project.coreVersion}", changing: true
     } else if (project.minecraftEnv == 'production') {
         minepass_core files("minepass-gameserver-${project.coreVersion}.jar")
     }
@@ -94,4 +94,8 @@ task extractCore(type: Copy) {
 }
 
 classes.dependsOn extractCore
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.12'
+}
 

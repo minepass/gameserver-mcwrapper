@@ -73,6 +73,7 @@ public abstract class EventParser {
 
         Matcher m = pattern.matcher(logMessage);
         if (m.find()) {
+            wrapper.getLogger().debug("Matched event parser.", this);
             return run(m);
         }
         return Status.IGNORED;

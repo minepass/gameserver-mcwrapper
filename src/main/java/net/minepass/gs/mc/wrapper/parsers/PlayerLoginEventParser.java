@@ -25,12 +25,12 @@
 package net.minepass.gs.mc.wrapper.parsers;
 
 import net.minepass.api.gameserver.MPPlayer;
-import net.minepass.api.gameserver.MPWorldServer;
 import net.minepass.gs.mc.wrapper.EventParser;
 import net.minepass.gs.mc.wrapper.MP_MinecraftWrapper;
 
 import java.util.UUID;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PlayerLoginEventParser extends EventParser {
 
@@ -61,33 +61,41 @@ public class PlayerLoginEventParser extends EventParser {
         if (uuid != null) {
             getState().currentPlayers.put(playerLoginName, uuid);
         } else {
-            wrapper.getLogger().error("Authenticator did not store UUID of player ".concat(playerLoginName));
+            wrapper.getLogger().error("Authenticator did not store UUID of player ".concat(playerLoginName), this);
         }
 
         // Lookup player pass and set game mode.
         // NOTE: Other pass related events take place via ScheduledTasks.
         //
         if ((player = wrapper.getMinepass().getPlayer(uuid)) != null) {
-            MPWorldServer server = wrapper.getMinepass().getServer();
-            Integer minecraftGameMode;
+            Integer minecraftGameMode = -1;
+            Pattern privPattern = Pattern.compile("mc:(?<name>[a-z]+)");
 
-            // Determine mode.
-            switch (player.type) {
-                case "visitor":
-                    minecraftGameMode = server.lifecycle_visitor_mode;
-                    break;
-                default:
-                    minecraftGameMode = server.lifecycle_default_mode;
+            Matcher pm;
+            for (String p : player.privileges) {
+                pm = privPattern.matcher(p);
+                if (pm.find()) {
+                    switch (pm.group("name")) {
+                        case "survival":
+                            minecraftGameMode = 0;
+                            break;
+                        case "creative":
+                            minecraftGameMode = 1;
+                            break;
+                        case "adventure":
+                            minecraftGameMode = 2;
+                            break;
+                        case "spectator":
+                            minecraftGameMode = 3;
+                            break;
+                    }
+                }
             }
-
-//            // Downgrade spectator mode before 1.8
-//            if (minecraftGameMode.equals(MinePassMC.GAMETYPE_SPECTATOR)
-//                    && versionCompare("1.8", wrapper.getState().minecraftVersion) < 0) {
-//                minecraftGameMode = MinePassMC.GAMETYPE_ADVENTURE;
-//            }
 
             if (minecraftGameMode > -1) {
                 wrapper.getServerManager().setPlayerGameMode(playerLoginName, minecraftGameMode);
+            } else {
+                wrapper.getServerManager().kickPlayer(playerLoginName, "Your current MinePass does not permit access to this server.");
             }
         }
 

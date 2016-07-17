@@ -39,12 +39,12 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import net.minepass.api.gameserver.MPAsciiArt;
+import net.minepass.api.gameserver.MPConfig;
 import net.minepass.api.gameserver.MPConfigException;
 import net.minepass.api.gameserver.MPStartupException;
+import net.minepass.api.gameserver.embed.solidtx.TxLog;
 import net.minepass.api.gameserver.embed.solidtx.TxStack;
 import net.minepass.gs.mc.MinePassMC;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * MinePass wrapper for Vanilla Minecraft.
@@ -109,7 +109,7 @@ public class MP_MinecraftWrapper {
     // Wrapper Instance
     // ------------------------------------------------------------------------------------------------------------- //
 
-    private Logger logger;
+    private TxLog logger;
     private Boolean debug;
     private String wrapperVersion;
     private File serverJarFile;
@@ -129,8 +129,7 @@ public class MP_MinecraftWrapper {
             throw new RuntimeException("Could not find " + serverJarFileName);
         }
 
-        this.logger = LogManager.getLogger();
-        logger.info(String.format("MinePass Wrapper (%s) for Minecraft", wrapperVersion));
+        TxLog.log(TxLog.Level.INFO, String.format("MinePass Wrapper (%s) for Minecraft", wrapperVersion));
     }
 
     /**
@@ -149,13 +148,16 @@ public class MP_MinecraftWrapper {
 
         try {
             debug = config.getProperty("debug_enabled", "false").equals("true");
-            String api_host = config.getProperty("setup_api_host");
-            String server_uuid = config.getProperty("setup_server_id");
-            String server_secret = config.getProperty("setup_server_secret");
 
             if (debug) {
                 TxStack.debug = true;
             }
+
+            MPConfig mtc = new MPConfig();
+            mtc.variant = "MCWrapper ".concat(wrapperVersion);
+            mtc.api_host = config.getProperty("setup_api_host");
+            mtc.server_uuid = config.getProperty("setup_server_id");
+            mtc.server_secret = config.getProperty("setup_server_secret");
 
             /**
              * The MinePass network stack is built upon SolidTX, an MIT licensed project
@@ -168,18 +170,20 @@ public class MP_MinecraftWrapper {
              *   https://github.com/org-binbab/solid-tx
              *
              */
-            this.minepass = new MinePassMC("MCWrapper ".concat(wrapperVersion), api_host, server_uuid, server_secret);
+            this.minepass = new MinePassMC(mtc);
+            this.logger = minepass.log;
             minepass.setContext(this);
 
-            logger.info("MinePass Core Version: " + minepass.getVersion());
-            logger.info("MinePass API Endpoint: " + api_host);
-            logger.info("MinePass World Server UUID: " + minepass.getServerUUID());
+            logger.info("MinePass Core Version: " + minepass.getVersion(), null);
+            logger.info("MinePass API Endpoint: " + mtc.api_host, null);
+            logger.info("MinePass World Server UUID: " + minepass.getServerUUID(), null);
         } catch (MPConfigException e) {
+            e.printStackTrace();
             for (String x : MPAsciiArt.getNotice("Configuration Update Required")) {
-                logger.info(x);
+                TxLog.log(TxLog.Level.INFO, x);
             }
-            logger.warn("Run the server configuration wizard at http://minepass.net");
-            logger.warn("Then paste the configuration into minepass.config");
+            TxLog.log(TxLog.Level.WARN,"Run the server configuration wizard at http://minepass.net");
+            TxLog.log(TxLog.Level.WARN,"Then paste the configuration into minepass.config");
             return false;
         } catch (MPStartupException e) {
             e.printStackTrace();
@@ -240,7 +244,7 @@ public class MP_MinecraftWrapper {
         }
     }
 
-    public Logger getLogger() {
+    public TxLog getLogger() {
         return logger;
     }
 
@@ -258,6 +262,14 @@ public class MP_MinecraftWrapper {
 
     public CommonState getState() {
         return state;
+    }
+
+    public String getWrapperVersion() {
+        return wrapperVersion;
+    }
+
+    public boolean getDebug() {
+        return debug;
     }
 
     // Configuration

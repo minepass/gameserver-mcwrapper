@@ -33,7 +33,7 @@ public final class CommonState {
     public boolean minepassStarted = false;
 
     /**
-     * Store player UUIDs as presented by Minecraft authenticator events.
+     * Store player UUIDs as presented by authenticator events.
      */
     public final ConcurrentHashMap<String,UUID> playerAuthUUIDs = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<UUID,String> playerAuthNames = new ConcurrentHashMap<>();

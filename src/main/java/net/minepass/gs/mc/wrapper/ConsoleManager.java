@@ -24,7 +24,7 @@
 
 package net.minepass.gs.mc.wrapper;
 
-import org.apache.logging.log4j.Logger;
+import net.minepass.gs.InputBridge;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,15 +41,13 @@ import java.io.InputStreamReader;
 public class ConsoleManager implements Runnable {
 
     private MP_MinecraftWrapper wrapper;
-    private Logger logger;
     private InputStream consoleInput;
     private InputBridge bridge;
 
     public ConsoleManager(MP_MinecraftWrapper wrapper) {
         this.wrapper = wrapper;
-        this.logger = wrapper.getLogger();
-        this.consoleInput = System.in;
-        this.bridge = new InputBridge();
+        consoleInput = System.in;
+        bridge = new InputBridge();
         System.setIn(bridge);
     }
 

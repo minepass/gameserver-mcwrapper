@@ -26,14 +26,15 @@ package net.minepass.gs.mc.wrapper;
 
 import net.minepass.api.gameserver.MPAsciiArt;
 import net.minepass.api.gameserver.MPWorldServerDetails;
+import net.minepass.api.gameserver.embed.solidtx.TxLog;
 import net.minepass.api.gameserver.embed.solidtx.TxSync;
+import net.minepass.gs.InputBridge;
 import net.minepass.gs.mc.MinePassMC;
 import net.minepass.gs.mc.wrapper.parsers.AuthenticatorEventParser;
 import net.minepass.gs.mc.wrapper.parsers.PlayerLoginEventParser;
 import net.minepass.gs.mc.wrapper.parsers.PlayerLogoutEventParser;
 import net.minepass.gs.mc.wrapper.parsers.ServerStartEventParser;
 import net.minepass.gs.mc.wrapper.parsers.ServerStopEventParser;
-import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -59,7 +60,7 @@ public class ServerManager implements Runnable {
 
     private MP_MinecraftWrapper wrapper;
 
-    private Logger logger;
+    private TxLog logger;
     private Method getNextLogEventMethod;
     private Object[] getNextLogEventArgs;
 
@@ -106,8 +107,17 @@ public class ServerManager implements Runnable {
         String logOutput;
         String[] l;
 
-        while ((logOutput = getNextLogEvent()) != null) {
-            status = null;
+        while (true) {
+            logOutput = getNextLogEvent();
+            if (logOutput == null) {
+                try {
+                    Thread.sleep(750);
+                } catch (InterruptedException e) {
+                    return;
+                }
+                continue;
+            }
+
             l = logOutput.split("\\|");  // THREAD, LEVEL, MESSAGE
 
             if (eventParserHold.containsKey(l[THREAD])) {
@@ -157,7 +167,7 @@ public class ServerManager implements Runnable {
         syncThread.start();
 
         // Force whitelist enabled.
-        logger.info("Requiring whitelist enabled");
+        logger.info("Requiring whitelist enabled", this);
         sendServerCommand("whitelist on");
 
         // Start scheduled tasks.
@@ -167,12 +177,16 @@ public class ServerManager implements Runnable {
 
         // Output MinePass logo.
         for (String x : MPAsciiArt.getLogo("System Ready")) {
-            logger.info(x);
+            logger.info(x, null);
         }
 
         // Send server details.
         MPWorldServerDetails details = new MPWorldServerDetails();
-        details.game_version = String.format(
+        details.plugin_type = "mc-vanilla-wrapper";
+        details.plugin_version = wrapper.getWrapperVersion();
+        details.game_realm = "mc";
+        details.game_version = getState().minecraftVersion;
+        details.game_version_raw = String.format(
                 "Minecraft %s / Vanilla",
                 getState().minecraftVersion
         );

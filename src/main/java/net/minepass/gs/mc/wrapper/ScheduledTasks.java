@@ -25,6 +25,7 @@
 package net.minepass.gs.mc.wrapper;
 
 import net.minepass.gs.GameserverTasks;
+import net.minepass.gs.InputBridge;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,28 +49,26 @@ import java.util.UUID;
 public class ScheduledTasks extends GameserverTasks implements Runnable {
 
     private MP_MinecraftWrapper wrapper;
-    private HashMap<UUID, String> currentPlayersTemp;
 
     public ScheduledTasks(MP_MinecraftWrapper wrapper) {
         super(wrapper.getMinepass());
         this.wrapper = wrapper;
-        this.currentPlayersTemp = new HashMap<>();
     }
 
     @Override
     protected Map<UUID, String> getCurrentPlayers() {
-        currentPlayersTemp.clear();
+        HashMap<UUID, String> currentPlayers = new HashMap<>();
         for (Map.Entry<String, UUID> entry : wrapper.getState().currentPlayers.entrySet()) {
-            currentPlayersTemp.put(entry.getValue(), entry.getKey());
+            currentPlayers.put(entry.getValue(), entry.getKey());
         }
-        return currentPlayersTemp;
+        return currentPlayers;
     }
 
     @Override
-    protected void updateAndReloadLocalWhitelist() {
+    protected void updateAndReloadLocalAuth() {
         wrapper.getMinepass().updateLocalWhitelist();
         wrapper.getConsoleManager().sendCommand("whitelist reload");
-        wrapper.getLogger().info("Whitelist updated");
+        wrapper.getLogger().info("Whitelist updated", this);
     }
 
     @Override
