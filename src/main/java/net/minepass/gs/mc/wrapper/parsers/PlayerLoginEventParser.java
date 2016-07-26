@@ -67,14 +67,16 @@ public class PlayerLoginEventParser extends EventParser {
         // Lookup player pass and set game mode.
         // NOTE: Other pass related events take place via ScheduledTasks.
         //
-        if ((player = wrapper.getMinepass().getPlayer(uuid)) != null) {
+        if (uuid != null && (player = wrapper.getMinepass().getPlayer(uuid)) != null) {
             Integer minecraftGameMode = -1;
             Pattern privPattern = Pattern.compile("mc:(?<name>[a-z]+)");
+            Pattern commandPattern = Pattern.compile("mc:/(?<command>.+)");
 
             Matcher pm;
             for (String p : player.privileges) {
-                pm = privPattern.matcher(p);
-                if (pm.find()) {
+                if ((pm = privPattern.matcher(p)).find()) {
+                    // Standard privileges.
+                    //
                     switch (pm.group("name")) {
                         case "survival":
                             minecraftGameMode = 0;
@@ -89,6 +91,14 @@ public class PlayerLoginEventParser extends EventParser {
                             minecraftGameMode = 3;
                             break;
                     }
+                } else if ((pm = commandPattern.matcher(p)).find()) {
+                    // Command privileges.
+                    //
+                    String command = pm.group("command");
+                    command = command.replaceAll("\\$name", player.name);
+                    command = command.replaceAll("\\$uuid", uuid.toString());
+                    wrapper.getLogger().debug("Sending login command: ".concat(command), this);
+                    wrapper.getConsoleManager().sendCommand(command);
                 }
             }
 
