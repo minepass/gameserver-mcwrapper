@@ -207,7 +207,7 @@ public class ServerManager implements Runnable {
     }
 
     public void setPlayerGameMode(String name, Integer mode) {
-        sendServerCommand("gamemode", mode.toString(), name);
+        sendServerCommand("gamemode", mode.toString(), String.format("@a[name=%s,m=!%s]", name, mode.toString()));
     }
 
     public void tellPlayerRaw(String name, String rawMessage) {
