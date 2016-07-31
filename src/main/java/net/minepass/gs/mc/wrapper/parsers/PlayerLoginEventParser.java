@@ -40,7 +40,7 @@ public class PlayerLoginEventParser extends EventParser {
 
     @Override
     protected String getPatternString(String minecraftVersion) {
-        return "(?<name>.+) joined the game";
+        return "(?<name>.+)\\[.*logged in with entity.*";
     }
 
     @Override
