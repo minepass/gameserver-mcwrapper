@@ -68,7 +68,7 @@ public class PlayerLoginEventParser extends EventParser {
         // NOTE: Other pass related events take place via ScheduledTasks.
         //
         if (uuid != null && (player = wrapper.getMinepass().getPlayer(uuid)) != null) {
-            Integer minecraftGameMode = -1;
+            Integer minecraftGameMode = -2;
             Pattern privPattern = Pattern.compile("mc:(?<name>[a-z]+)");
             Pattern commandPattern = Pattern.compile("mc:/(?<command>.+)");
 
@@ -78,6 +78,9 @@ public class PlayerLoginEventParser extends EventParser {
                     // Standard privileges.
                     //
                     switch (pm.group("name")) {
+                        case "default":
+                            minecraftGameMode = -1;
+                            break;
                         case "survival":
                             minecraftGameMode = 0;
                             break;
@@ -104,7 +107,7 @@ public class PlayerLoginEventParser extends EventParser {
 
             if (minecraftGameMode > -1) {
                 wrapper.getServerManager().setPlayerGameMode(playerLoginName, minecraftGameMode);
-            } else {
+            } else if (minecraftGameMode < -1) {
                 wrapper.getServerManager().kickPlayer(playerLoginName, "Your current MinePass does not permit access to this server.");
             }
         }
