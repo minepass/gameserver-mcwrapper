@@ -96,6 +96,6 @@ task extractCore(type: Copy) {
 classes.dependsOn extractCore
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.12'
+    gradleVersion = '3.0'
 }
 
