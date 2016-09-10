@@ -158,6 +158,7 @@ public class MP_MinecraftWrapper {
             mtc.api_host = config.getProperty("setup_api_host");
             mtc.server_uuid = config.getProperty("setup_server_id");
             mtc.server_secret = config.getProperty("setup_server_secret");
+            mtc.enforce_whitelist = !config.getProperty("enforce_whitelist", "true").equalsIgnoreCase("false");
 
             /**
              * The MinePass network stack is built upon SolidTX, an MIT licensed project

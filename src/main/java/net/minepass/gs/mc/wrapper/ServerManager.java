@@ -161,14 +161,26 @@ public class ServerManager implements Runnable {
         }
         getState().minepassStarted = true;
 
+        // Whitelist mode.
+        if (wrapper.getMinepass().getEnforceWhitelist()) {
+            logger.info("Requiring whitelist enabled", this);
+            sendServerCommand("whitelist on");
+        } else {
+            logger.warn("|     .^.                                             .^.     |", this);
+            logger.warn("|    / ! \\            WHITELIST DISABLED             / ! \\    |", this);
+            logger.warn("|   '-----'                                         '-----'   |", this);
+            logger.warn("MinePass option [enforce_whitelist]=false", this);
+            logger.warn("This server will be OPEN to unregistered visitors.", this);
+            logger.warn("MinePass can only manage privileges of registered players.", this);
+            logger.warn("If you are trying to accommodate existing players,", this);
+            logger.warn("  consider using the Import/Bypass feature of the web-portal.", this);
+            sendServerCommand("whitelist off");
+        }
+
         // Start sync thread.
         this.syncThread = new Thread(new TxSync(wrapper.getMinepass(), 10));
         syncThread.setDaemon(false);  // ensure any disk writing finishes
         syncThread.start();
-
-        // Force whitelist enabled.
-        logger.info("Requiring whitelist enabled", this);
-        sendServerCommand("whitelist on");
 
         // Start scheduled tasks.
         this.scheduledTasks = new Thread(new ScheduledTasks(wrapper), "MinePass");
