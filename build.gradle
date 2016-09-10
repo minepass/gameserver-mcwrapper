@@ -48,7 +48,7 @@ repositories {
     }
 }
 
-version = "0.18.44" + "-" + (System.getenv("BUILD_NUMBER") ?: "SNAPSHOT")
+version = "0.18.45" + "-" + (System.getenv("BUILD_NUMBER") ?: "SNAPSHOT")
 group = "net.minepass"
 archivesBaseName = "MinePass-MinecraftWrapper"
 mainClassName = "net.minepass.gs.mc.wrapper.MP_MinecraftWrapper"
