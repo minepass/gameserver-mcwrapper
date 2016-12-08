@@ -68,7 +68,7 @@ public class ScheduledTasks extends GameserverTasks implements Runnable {
     protected void updateAndReloadLocalAuth() {
         wrapper.getMinepass().updateLocalWhitelist();
         wrapper.getConsoleManager().sendCommand("whitelist reload");
-        wrapper.getLogger().info("Whitelist updated", this);
+        wrapper.getLogger().info("MinePass Synchronized", this);
     }
 
     @Override
